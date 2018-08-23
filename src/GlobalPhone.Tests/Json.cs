@@ -1,49 +1,52 @@
-using System;
-using Makrill;
-using Newtonsoft.Json.Linq;
 
 using NUnit.Framework.Constraints;
 
 namespace GlobalPhone.Tests
 {
+
     public class Json
     {
-        private class JsonResolveConstraint : IResolveConstraint 
+
+        private class JsonResolveConstraint
+            : IResolveConstraint
         {
+
             private readonly object _match;
 
             public JsonResolveConstraint(object match)
             {
-                _match = match;
+                this._match = match;
             }
 
-            public Constraint Resolve()
+            public IConstraint Resolve()
             {
-                return new JsonEqualConstraint(_match);
+                return new JsonEqualConstraint(this._match);
             }
+
         }
-        internal class JsonEqualConstraint :EqualConstraint
-        {
-            private static readonly JsonConvert jsonConvert = new JsonConvert();
 
-            private static string SerializeObject(Object o)
-            {
-                return jsonConvert.Serialize(o);
-            }
+        internal class JsonEqualConstraint
+            : ComparisonConstraint
+        {
 
             public JsonEqualConstraint(object match)
-                :base(SerializeObject(match))
+                : base(match)
             {
             }
 
-            public override bool Matches(object actual)
+            protected override bool PerformComparison(ComparisonAdapter comparer, object actual, object expected, Tolerance tolerance)
             {
-                return base.Matches(SerializeObject(actual));
+                var makrillConvert = new Makrill.JsonConvert();
+                return expected.Equals(makrillConvert.Serialize(actual));
             }
+
         }
+
         public static IResolveConstraint EqualTo(object match)
         {
             return new JsonResolveConstraint(match);
         }
+
     }
+
 }

@@ -1,58 +1,67 @@
 using NUnit.Framework;
+using System.Linq;
 
 namespace GlobalPhone.Tests
 {
+
+    [SetUpFixture]
     [TestFixture(typeof(DefaultDeserializer), ForData.UseHash)]
     [TestFixture(typeof(NewtonsoftDeserializer), ForData.UseHashV2)]
     [TestFixture(typeof(NewtonsoftDeserializer), ForData.UseHashV3)]
-    public class DatabaseTest<Deserializer> : TestFixtureBase where Deserializer : IDeserializer, new()
+    public class DatabaseTest<TDeserializer> 
+        : TestFixtureBase where TDeserializer : IDeserializer, new()
     {
+
         public DatabaseTest(ForData forData)
             : base(forData)
         {
         }
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void TestFixtureSetup()
         {
-            _deserializer = new Deserializer();
+            this._deserializer = new TDeserializer();
         }
 
         [Test]
         public void initializing_database_manually()
         {
-            var db = new Database(RecordData);
-            Assert.That(db.Regions.Length, Is.EqualTo(RecordData.Length));
+            var db = new Database(this.RecordData);
+            Assert.That(db.Regions.Count(), Is.EqualTo(this.RecordData.Length));
         }
+
         [Test]
         public void finding_region_by_country_code()
         {
-            Region region = Db.TryGetRegion(1);
+            var region = this.Db.TryGetRegion(1);
             Assert.That(region, Is.TypeOf<Region>());
             Assert.That(region.CountryCode, Is.EqualTo("1"));
         }
+
         [Test]
         public void nonexistent_region_returns_nil()
         {
-            var region = Db.TryGetRegion(999);
+            var region = this.Db.TryGetRegion(999);
             Assert.That(region, Is.Null);
         }
+
         [Test]
         public void finding_territory_by_name()
         {
-            var territory = Db.TryGetTerritory("gb");
+            var territory = this.Db.TryGetTerritory("gb");
             Assert.That(territory, Is.TypeOf<Territory>());
             Assert.That(territory.Name, Is.EqualTo("GB"));
             //assert_equal "GB", territory.name
-            Assert.That(territory.Region, Is.EqualTo(Db.TryGetRegion(44)));
+            Assert.That(territory.Region, Is.EqualTo(this.Db.TryGetRegion(44)));
         }
 
         [Test]
         public void nonexistent_territory_returns_nil()
         {
-            var territory = Db.TryGetTerritory("nonexistent");
+            var territory = this.Db.TryGetTerritory("nonexistent");
             Assert.That(territory, Is.Null);
         }
 
     }
+
 }

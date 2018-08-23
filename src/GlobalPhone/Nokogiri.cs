@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -19,6 +20,11 @@ namespace GlobalPhone
         public static XmlDoc Xml(string text)
         {
             return new XmlDoc(new XmlDocument().Tap(xdoc => xdoc.LoadXml(text)));
+        }
+
+        public static XmlDoc Xml(Stream stream)
+        {
+            return new XmlDoc(new XmlDocument().Tap(xdoc => xdoc.Load(stream)));
         }
 
         public class Node

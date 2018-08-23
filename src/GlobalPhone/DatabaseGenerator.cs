@@ -7,17 +7,23 @@ using System.Text.RegularExpressions;
 
 namespace GlobalPhone
 {
+
     /// <summary>
     /// Database generator.
     /// </summary>
     public class DatabaseGenerator
     {
+
+        private IDictionary[] _recordDataHash;
+        private string[][] _testCases;
+
         private Nokogiri.XmlDoc Doc { get; set; }
 
         private DatabaseGenerator(Nokogiri.XmlDoc doc)
         {
-            Doc = doc;
+            this.Doc = doc;
         }
+
         /// <summary>
         /// Load the specified text as xml.
         /// </summary>
@@ -25,6 +31,15 @@ namespace GlobalPhone
         {
             return new DatabaseGenerator(Nokogiri.Xml(text));
         }
+
+        /// <summary>
+        /// Load the specified text as xml.
+        /// </summary>
+        public static DatabaseGenerator Load(Stream stream)
+        {
+            return new DatabaseGenerator(Nokogiri.Xml(stream));
+        }
+
         /// <summary>
         /// Loads the file as a file containing xml.
         /// </summary>
@@ -33,36 +48,34 @@ namespace GlobalPhone
             return Load(File.ReadAllText(filename));
         }
 
-        private IDictionary[] record_data_hash;
         /// <summary>
         /// The records in the data.
         /// </summary>
         public IDictionary[] RecordData()
         {
-            return record_data_hash ?? (record_data_hash = TerritoryNodesByRegion().Select(kv =>
+            return this._recordDataHash ?? (this._recordDataHash = this.TerritoryNodesByRegion().Select(kv =>
             {
                 var countryCode = kv.Key;
                 var territoryNodes = kv.ToArray();
                 return
-                    Truncate(CompileRegion(
+                    Truncate(this.CompileRegion(
                         territoryNodes,
                         countryCode));
             }).ToArray());
         }
 
-        private string[][] _testCases;
         /// <summary>
         /// Return example numbers for territories.
         /// </summary>
         public string[][] TestCases()
         {
-            return _testCases ?? (_testCases = TerritoryNodes().Select(ExampleNumbersForTerritoryNode)
+            return this._testCases ?? (this._testCases = this.TerritoryNodes().Select(this.ExampleNumbersForTerritoryNode)
                 .Flatten(1).Cast<string[]>().Where(arr => arr.Length > 0).ToArray());
         }
 
         private IEnumerable<Nokogiri.Node> TerritoryNodes()
         {
-            return Doc.Search("territory");
+            return this.Doc.Search("territory");
         }
 
         private static string TerritoryName(Nokogiri.Node node)
@@ -74,19 +87,19 @@ namespace GlobalPhone
         {
             var name = TerritoryName(node);
             if (name == "001") return new[] { new string[0] };
-            return node.Search(example_numbers_selector())
+            return node.Search(this.example_numbers_selector())
                 .Select(node1 => new[] { node1.Text, name })
                 .ToArray();
         }
 
         private IEnumerable<IGrouping<string, Nokogiri.Node>> TerritoryNodesByRegion()
         {
-            return TerritoryNodes().GroupBy(node => node["countryCode"]);
+            return this.TerritoryNodes().GroupBy(node => node["countryCode"]);
         }
 
         private string example_numbers_selector()
         {
-            return "./*[not(" + String.Join(" or ", ExampleNumberTypesToExclude().Select(type =>
+            return "./*[not(" + String.Join(" or ", this.ExampleNumberTypesToExclude().Select(type =>
                                                                                            "self::" + type)) +
                    ")]/exampleNumber";
         }
@@ -99,10 +112,10 @@ namespace GlobalPhone
         private IDictionary CompileRegion(IEnumerable<Nokogiri.Node> territoryNodes, string countryCode)
         {
             var nodes = territoryNodes.ToArray();
-            var kv = CompileTerritories(nodes);
+            var kv = this.CompileTerritories(nodes);
             var territories = kv.Item1;
             var mainTerritoryNode = kv.Item2;
-            var formats = CompileFormats(nodes);
+            var formats = this.CompileFormats(nodes);
 
             return new Dictionary<string, object>
                      {
@@ -123,7 +136,7 @@ namespace GlobalPhone
             var mainTerritoryNode = nodes.First();
             foreach (var node in nodes)
             {
-                var territory = Truncate(CompileTerritory(node));
+                var territory = Truncate(this.CompileTerritory(node));
                 if (node["mainCountryForCode"] != null)
                 {
                     mainTerritoryNode = node;
@@ -140,8 +153,8 @@ namespace GlobalPhone
 
         private IDictionary CompileTerritory(Nokogiri.Node node)
         {
-            var possibleNumberPattern = Pattern(node, "generalDesc possibleNumberPattern");
-            var nationalNumberPattern = Pattern(node, "generalDesc nationalNumberPattern");
+            var possibleNumberPattern = this.Pattern(node, "generalDesc possibleNumberPattern");
+            var nationalNumberPattern = this.Pattern(node, "generalDesc nationalNumberPattern");
             var d = new Dictionary<string, object>
             {
                 {"name",TerritoryName(node)},
@@ -159,7 +172,7 @@ namespace GlobalPhone
 
         private IEnumerable<IDictionary> CompileFormats(IEnumerable<Nokogiri.Node> territoryNodes)
         {
-            return Truncate(FormatNodesFor(territoryNodes).Select(node => Truncate(CompileFormat(node))));
+            return Truncate(this.FormatNodesFor(territoryNodes).Select(node => Truncate(this.CompileFormat(node))));
         }
 
         private IDictionary CompileFormat(Nokogiri.Node node)
@@ -168,7 +181,7 @@ namespace GlobalPhone
                                     {
                                         {"pattern",node["pattern"]},
                                         {"format", TextOrEmpty(node, "format").FirstOrDefault()},
-                                        {"leadingDigits",Pattern(node, "leadingDigits")},
+                                        {"leadingDigits",this.Pattern(node, "leadingDigits")},
                                         {"formatRule",node["nationalPrefixFormattingRule"]},
                                         {"intlFormat",TextOrEmpty(node, "intlFormat").FirstOrDefault()},
                                     };
@@ -180,17 +193,17 @@ namespace GlobalPhone
             return territoryNodes.Select(node =>
                                        node.Search("availableFormats numberFormat").ToArray()).Flatten<Nokogiri.Node>();
         }
-        private static readonly Regex whiteSpace = new Regex(@"\s+");
+        private static readonly Regex WhiteSpace = new Regex(@"\s+");
         private static string Squish(string @string)
         {
-            return !String.IsNullOrEmpty(@string) ? whiteSpace.Replace(@string, "") : @string;
+            return !String.IsNullOrEmpty(@string) ? WhiteSpace.Replace(@string, "") : @string;
         }
 
         private string[] Pattern(Nokogiri.Node node, string selector)
         {
             return TextOrEmpty(node, selector)
                 .Select(Squish)
-                .Where(NotNullOrEmpty)
+                .Where(this.NotNullOrEmpty)
                 .ToArray();
         }
 
@@ -236,7 +249,7 @@ end
 end
 */
             var found = -1;
-            for (int i = self.Length - 1; i >= 0; i--)
+            for (var i = self.Length - 1; i >= 0; i--)
             {
                 if (self[i] != null)
                 {
@@ -252,4 +265,5 @@ end
         }
 
     }
+
 }

@@ -88,18 +88,18 @@ Options:" + (showCompat ? @"
                         break;
                 }
             }
-            string dl = File.Exists(path) 
-                ? File.ReadAllText(path) 
+            var dl = File.Exists(path)
+                ? File.ReadAllText(path)
                 : new System.Net.WebClient().DownloadString(path);
             var generator = DatabaseGenerator.Load(dl);
             var result = Send(generator, method);
             Console.WriteLine(
 #if NEWTONSOFT
-wJsonConvert.SerializeObject(result, compact ? Formatting.None : Formatting.Indented)
+                JsonConvert.SerializeObject(result, compact ? Formatting.None : Formatting.Indented)
 #else
-new JavaScriptSerializer().Serialize(result)
+                new JavaScriptSerializer().Serialize(result)
 #endif
-);
+                );
 
         }
 
@@ -115,5 +115,7 @@ new JavaScriptSerializer().Serialize(result)
                     throw new Exception("Unknown method " + method);
             }
         }
+
     }
+
 }

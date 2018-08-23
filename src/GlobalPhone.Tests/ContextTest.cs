@@ -2,6 +2,7 @@
 
 namespace GlobalPhone.Tests
 {
+    [SetUpFixture]
     [TestFixture(typeof(DefaultDeserializer), ForData.UseHash)]
     [TestFixture(typeof(NewtonsoftDeserializer), ForData.UseHashV2)]
     [TestFixture(typeof(NewtonsoftDeserializer), ForData.UseHashV3)]
@@ -12,7 +13,7 @@ namespace GlobalPhone.Tests
         {
         }
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void TestFixtureSetup()
         {
             _deserializer = new Deserializer();

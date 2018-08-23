@@ -1,22 +1,27 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace GlobalPhone
 {
+
     /// <summary>
     /// Database of phone number information.
     /// </summary>
-    public class Database : Parsing
+    public class Database
+        : Parsing
     {
-        public readonly Region[] Regions;
+
+        public IEnumerable<Region> Regions { get; }
+
+        private readonly Dictionary<string, Territory> _territoriesByName;
 
         public Database(object[] recordData)
         {
-            _territoriesByName = new Dictionary<string, Territory>(StringComparer.OrdinalIgnoreCase);
-            Regions = recordData.Select(data => new Region(data)).ToArray();
+            this._territoriesByName = new Dictionary<string, Territory>(StringComparer.OrdinalIgnoreCase);
+            this.Regions = recordData.Select(data => new Region(data)).ToList();
         }
 
         public static Database LoadFile(string filename, IDeserializer serializer)
@@ -29,45 +34,47 @@ namespace GlobalPhone
             return new Database(serializer.Deserialize(text));
         }
 
+        public static Database Load(Stream stream, IDeserializer serializer)
+        {
+            return new Database(serializer.Deserialize<object[]>(stream));
+        }
+
         public bool TryGetRegion(int countryCode, out Region value)
         {
-            return TryGetRegion(countryCode.ToString(CultureInfo.InvariantCulture), out value);
+            return this.TryGetRegion(countryCode.ToString(CultureInfo.InvariantCulture), out value);
         }
 
         public Region TryGetRegion(int countryCode)
         {
-            Region value;
-            return TryGetRegion(countryCode.ToString(CultureInfo.InvariantCulture), out value) ? value : null;
+            return this.TryGetRegion(countryCode.ToString(CultureInfo.InvariantCulture), out var value) ? value : null;
         }
 
         public override bool TryGetRegion(string countryCode, out Region value)
         {
-            return RegionsByCountryCode.TryGetValue(countryCode, out value);
+            return this.RegionsByCountryCode.TryGetValue(countryCode, out value);
         }
 
         private Dictionary<string, Region> _regionsByCountryCode;
 
         protected Dictionary<string, Region> RegionsByCountryCode
         {
-            get { return _regionsByCountryCode ?? (_regionsByCountryCode = Regions.ToDictionary(r => r.CountryCode)); }
+            get { return this._regionsByCountryCode ?? (this._regionsByCountryCode = this.Regions.ToDictionary(r => r.CountryCode)); }
         }
 
-        private readonly Dictionary<string, Territory> _territoriesByName;
 
         public override bool TryGetTerritory(string name, out Territory territory)
         {
-            Territory value;
-            if (_territoriesByName.TryGetValue(name, out value))
+            if (this._territoriesByName.TryGetValue(name, out var value))
             {
                 territory = value;
                 return true;
             }
 
             Region region;
-            if ((region = RegionForTerritory(name)) != null
+            if ((region = this.RegionForTerritory(name)) != null
                 && (territory = region.Territory(name)) != null)
             {
-                _territoriesByName.Add(name, territory);
+                this._territoriesByName.Add(name, territory);
                 return true;
             }
             territory = null;
@@ -76,7 +83,9 @@ namespace GlobalPhone
 
         private Region RegionForTerritory(string name)
         {
-            return Regions.SingleOrDefault(r => r.HasTerritory(name));
+            return this.Regions.SingleOrDefault(r => r.HasTerritory(name));
         }
+
     }
+
 }

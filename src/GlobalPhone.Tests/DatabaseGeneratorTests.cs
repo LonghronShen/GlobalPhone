@@ -6,6 +6,7 @@ using System.Text;
 
 namespace GlobalPhone.Tests
 {
+    [SetUpFixture]
     [TestFixture(typeof(DefaultDeserializer))]
     [TestFixture(typeof(NewtonsoftDeserializer))]
 	public class DatabaseGeneratorTests<Deserializer> : TestFixtureBase where Deserializer:IDeserializer, new()
@@ -15,7 +16,7 @@ namespace GlobalPhone.Tests
         {
         }
 
-		[TestFixtureSetUp]
+		[OneTimeSetUp]
 		public void TestFixtureSetup()
 		{
 			_deserializer = new Deserializer ();

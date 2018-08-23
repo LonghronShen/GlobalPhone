@@ -2,6 +2,8 @@
 
 namespace GlobalPhone.Tests
 {
+
+    [SetUpFixture]
     [TestFixture(typeof(DefaultDeserializer), ForData.UseHash)]
     [TestFixture(typeof(NewtonsoftDeserializer), ForData.UseHashV2)]
     public class CanGenerateExpectedTests<Deserializer> : TestFixtureBase where Deserializer : IDeserializer, new()
@@ -11,7 +13,7 @@ namespace GlobalPhone.Tests
         {
         }
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void TestFixtureSetup()
         {
             _deserializer = new Deserializer();
