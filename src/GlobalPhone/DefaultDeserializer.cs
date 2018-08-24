@@ -1,5 +1,7 @@
 using Newtonsoft.Json;
 using System.IO;
+using Makrill;
+using JsonConvert = Newtonsoft.Json.JsonConvert;
 
 namespace GlobalPhone
 {
@@ -13,12 +15,16 @@ namespace GlobalPhone
 
         public object[] Deserialize(string text)
         {
-            return JsonConvert.DeserializeObject<object[]>(text);
+            var settings = new JsonSerializerSettings();
+            settings.Converters.Add(new ArrayAndDictionaryConverter());
+            return JsonConvert.DeserializeObject<object[]>(text, settings);
         }
 
         public T Deserialize<T>(Stream stream)
         {
-            var deserializer = new JsonSerializer();
+            var settings = new JsonSerializerSettings();
+            settings.Converters.Add(new ArrayAndDictionaryConverter());
+            var deserializer = JsonSerializer.Create(settings);
             using (TextReader tr = new StreamReader(stream))
             {
                 using (var jtr = new JsonTextReader(tr))

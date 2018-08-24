@@ -37,7 +37,9 @@ namespace GlobalPhone.Tests
             protected override bool PerformComparison(ComparisonAdapter comparer, object actual, object expected, Tolerance tolerance)
             {
                 var makrillConvert = new Makrill.JsonConvert();
-                return expected.Equals(makrillConvert.Serialize(actual));
+                var actualJson = makrillConvert.Serialize(actual);
+                var expectedJson = makrillConvert.Serialize(expected);
+                return expectedJson.Equals(actualJson);
             }
 
         }
