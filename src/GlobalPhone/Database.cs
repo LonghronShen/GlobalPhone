@@ -36,8 +36,12 @@ namespace GlobalPhone
 
         public static Database Load(Stream stream, IDeserializer serializer)
         {
-            return new Database(serializer.Deserialize<Dictionary<string, object>[]>(stream)
-                .Select(x => (object)x).ToArray());
+            return new Database(serializer.Deserialize<object[]>(stream));
+        }
+
+        public static Context CreateContext(IDeserializer serializer = null)
+        {
+            return new Context(serializer);
         }
 
         public bool TryGetRegion(int countryCode, out Region value)

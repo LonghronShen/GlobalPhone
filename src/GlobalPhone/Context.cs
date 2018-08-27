@@ -17,10 +17,11 @@ namespace GlobalPhone
             ? Database.Load(DbText, _serializer)
             : Database.LoadFile(DbPath.ThrowIfNullOrEmpty(new NoDatabaseException("set `DbPath=' first")), _serializer));
 
-        public Context(IDeserializer serializer = null)
+        public Context(IDeserializer serializer = null, Database db = null)
         {
             DefaultTerritoryName = "US";
             _serializer = serializer ?? new DefaultDeserializer();
+            _db = db;
         }
 
         public Number Parse(string str, string territoryName = null)

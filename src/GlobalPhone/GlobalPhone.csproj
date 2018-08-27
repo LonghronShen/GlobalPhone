@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyTitle>GlobalPhone</AssemblyTitle>
-    <VersionPrefix>5.0.2</VersionPrefix>
+    <VersionPrefix>5.0.3</VersionPrefix>
     <TargetFrameworks>netstandard1.6;net45;net40</TargetFrameworks>
     <AssemblyName>GlobalPhone</AssemblyName>
     <PackageId>Synyi.GlobalPhone</PackageId>
