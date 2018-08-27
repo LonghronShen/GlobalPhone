@@ -13,7 +13,7 @@ namespace GlobalPhone
 
         private static Context Context => _context.Value;
 
-        public static Func<Context> DefaultContextBuilder => () => new Context();
+        public static Func<Context> DefaultContextBuilder { get; set; } = () => new Context();
 
         public static string DbPath
         {
