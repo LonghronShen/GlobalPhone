@@ -39,9 +39,9 @@ namespace GlobalPhone
             return new Database(serializer.Deserialize<object[]>(stream));
         }
 
-        public static Context CreateContext(Database db = null, IDeserializer serializer = null)
+        public Context CreateContext(IDeserializer serializer = null)
         {
-            return new Context(serializer, db);
+            return new Context(serializer, this);
         }
 
         public bool TryGetRegion(int countryCode, out Region value)
